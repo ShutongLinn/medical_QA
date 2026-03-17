@@ -9,8 +9,8 @@ base_model_id = "Qwen/Qwen3-4B-Instruct-2507"
 adapter_path = "qwen-grpo-medical"  # Directory where LoRA weights and tokenizer are saved
 
 if os.path.exists(data_dir):
-    loaded_dataset = load_from_disk(data_dir)
-    ds_test = loaded_dataset["test"]
+    test_path = os.path.join(data_dir, "test")
+    ds_test = load_from_disk(test_path)
 else:
     print("error: cannot found processed dataset...")
 

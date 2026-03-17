@@ -1,4 +1,4 @@
-# filename: inference_lora.py
+# filename: inference_base.py
 import os
 import torch
 import json
@@ -9,14 +9,9 @@ from transformers import AutoTokenizer
 # ================= setting =================
 DATA_DIR = "./gsm8k_processed_data"
 BASE_MODEL_ID = "Qwen/Qwen3-4B-Instruct-2507"
-ADAPTER_PATH = "grpo_lora"
-OUTPUT_FILE = "./results/results_grpo.json"
-MAX_SAMPLES = -1  # -1 means load all data
+OUTPUT_FILE = "./results/results_base.json"
+MAX_SAMPLES = -1  # -1 load all data
 MAX_LENGTH = 512
-
-LORA_R = 16
-LORA_ALPHA = 32
-TARGET_MODULES = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
 # ===========================================
 
 def main():
@@ -26,27 +21,14 @@ def main():
     test_dataset = load_from_disk(os.path.join(DATA_DIR, "test"))
     limit = len(test_dataset) if MAX_SAMPLES == -1 else min(MAX_SAMPLES, len(test_dataset))
 
-    model, _ = FastLanguageModel.from_pretrained(
+    model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=BASE_MODEL_ID,
         max_seq_length=MAX_LENGTH,
         load_in_4bit=False,
         fast_inference=True,
         gpu_memory_utilization=0.9,
     )
-
-    model = FastLanguageModel.get_peft_model(
-        model,
-        r=LORA_R,
-        target_modules=TARGET_MODULES,
-        lora_alpha=LORA_ALPHA,
-        use_gradient_checkpointing="unsloth",
-        random_state=3407,
-    )
-
-    model.load_adapter(ADAPTER_PATH, adapter_name="default")
     model.eval()
-
-    tokenizer = AutoTokenizer.from_pretrained(ADAPTER_PATH)
 
     results = []
 
@@ -73,7 +55,7 @@ def main():
             "prompt": prompt,
             "target": target,
             "model_output": output_text,
-            "model_type": "lora"
+            "model_type": "base"
         })
 
         if (i + 1) % 10 == 0:

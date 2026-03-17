@@ -1,6 +1,6 @@
 from trl import SFTConfig, SFTTrainer
 from transformers import AutoTokenizer
-from unsloth import FastLanguageModel
+from unsloth import FastLanguageModel, is_bfloat16_supported
 import os
 from datasets import load_from_disk
 
@@ -10,10 +10,11 @@ base_model_id = "Qwen/Qwen3-4B-Instruct-2507"
 adapter_path = "./grpo/grpo_lora"  # Directory where LoRA weights and tokenizer are saved
 
 if os.path.exists(data_dir):
-    loaded_dataset = load_from_disk(data_dir)
+    train_path = os.path.join(data_dir, "train")
+    test_path = os.path.join(data_dir, "test")
     
-    ds_train = loaded_dataset["train"]
-    ds_test = loaded_dataset["test"]
+    ds_train = load_from_disk(train_path)
+    ds_test = load_from_disk(test_path)
 else:
     print("error: cannot found processed dataset...")
 
@@ -67,7 +68,8 @@ training_args=SFTConfig(
     num_train_epochs = 2,          # or set max_steps=200
     warmup_ratio=0.03,             # follow QLoRA paper
     learning_rate=3e-5,
-    bf16=True,        # train in bf16 for higher precision
+    fp16=is_bfloat16_supported(),
+    bf16=not is_bfloat16_supported(),        # train in bf16 for higher precision
     optim="adamw_torch_fused",
     weight_decay=0.1,
     lr_scheduler_type="cosine",

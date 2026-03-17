@@ -1,16 +1,17 @@
 
 from reward import correctness_reward, format_reward
 from datasets import load_from_disk
-from unsloth import FastLanguageModel
+from unsloth import FastLanguageModel, is_bfloat16_supported
 from trl import GRPOConfig, GRPOTrainer
 import os
 
 data_dir = "./gsm8k_processed_data"
 if os.path.exists(data_dir):
-    loaded_dataset = load_from_disk(data_dir)
+    train_path = os.path.join(data_dir, "train")
+    test_path = os.path.join(data_dir, "test")
     
-    train_dataset = loaded_dataset["train"]
-    test_dataset = loaded_dataset["test"]
+    train_dataset = load_from_disk(train_path)
+    test_dataset = load_from_disk(test_path)
 else:
     print("error: cannot found processed dataset...")
 
@@ -47,8 +48,8 @@ training_args = GRPOConfig(
     lr_scheduler_type = "cosine",
     optim = "adamw_torch_fused",
     logging_steps = 4,                  # log information every 4 steps
-    bf16 = True,     # determine the data type used for training
-    fp16 = False,
+    bf16 = is_bfloat16_supported(),     # determine the data type used for training
+    fp16 = not is_bfloat16_supported(),
     per_device_train_batch_size = 1,
     gradient_accumulation_steps = 8,  # Increase to 4 for smoother training
     num_generations = 2,              # Decrease if out of memory
