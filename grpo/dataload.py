@@ -3,6 +3,7 @@
 from datasets import load_dataset
 from transformers import AutoTokenizer
 import os
+import unsloth
 
 data_dir = "./gsm8k_processed_data"
 

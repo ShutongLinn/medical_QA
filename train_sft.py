@@ -2,12 +2,12 @@ from trl import SFTConfig, SFTTrainer
 from transformers import AutoTokenizer
 from unsloth import FastLanguageModel, is_bfloat16_supported
 import os
+import unsloth
 from datasets import load_from_disk
 
 ## load test datasets
 data_dir = "./medical_o1_reasoning_SFT_processed"
-base_model_id = "Qwen/Qwen3-4B-Instruct-2507"
-adapter_path = "./grpo/grpo_lora"  # Directory where LoRA weights and tokenizer are saved
+model_path = "grpo/grpo_merged_model"
 
 if os.path.exists(data_dir):
     train_path = os.path.join(data_dir, "train")
@@ -18,13 +18,13 @@ if os.path.exists(data_dir):
 else:
     print("error: cannot found processed dataset...")
 
-def load_model_tokenizer_ft(base_model_id, adapter_path):
+def load_model_tokenizer_ft(model_path):
   """ base_model_id = id of the based model on HF
       adapter_path = saved lora weights
   """
   # Load the base model
   model, _ = FastLanguageModel.from_pretrained(
-      model_name=base_model_id,
+      model_name=model_path,
       max_seq_length=1024,         # Same as during training
       load_in_4bit=False,           # Load in 4-bit for memory efficiency
       fast_inference=True,         # Enable fast inference
@@ -44,15 +44,15 @@ def load_model_tokenizer_ft(base_model_id, adapter_path):
       random_state=3407,  # Same random state as during training
   )
   # Load the saved LoRA weights
-  model.load_adapter(adapter_path,adapter_name="default")
+#   model.load_adapter(adapter_path,adapter_name="default")
   # Set the model to evaluation mode
   model.eval()
 
   # Load the tokenizer
-  tokenizer = AutoTokenizer.from_pretrained(adapter_path)
+  tokenizer = AutoTokenizer.from_pretrained(model_path)
   return model, tokenizer
 
-model,tokenizer=load_model_tokenizer_ft(base_model_id, adapter_path)
+model,tokenizer=load_model_tokenizer_ft(model_path)
 
 # put model to train mode
 model.train()

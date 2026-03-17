@@ -4,6 +4,7 @@ from datasets import load_from_disk
 from unsloth import FastLanguageModel, is_bfloat16_supported
 from trl import GRPOConfig, GRPOTrainer
 import os
+import unsloth
 
 data_dir = "./gsm8k_processed_data"
 if os.path.exists(data_dir):

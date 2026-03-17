@@ -1,12 +1,12 @@
 import os
+import unsloth
 from datasets import load_dataset
-from train_sft import load_model_tokenizer_ft
+from transformers import AutoTokenizer
 
 data_dir = "./medical_o1_reasoning_SFT_processed"
-base_model_id = "Qwen/Qwen3-4B-Instruct-2507"
-adapter_path = "./grpo/grpo_lora"  # Directory where LoRA weights and tokenizer are saved
+model_path = "./grpo/grpo_merged_model"
 
-_,tokenizer=load_model_tokenizer_ft(base_model_id, adapter_path)
+tokenizer = AutoTokenizer.from_pretrained(model_path)
 
 system_prompt = (
     "You a medical expert with advanced knowledge in clinical reasoning, diagonstics, and treatment planning."
